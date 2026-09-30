@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* MotoSpec tokens
+   Asphalt ink, road-grey page, and road-marking yellow used only as a signal
+   (focus and the known-issues marker). Barlow comes from California road signs. */
+@theme {
+  --font-sans: "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Barlow Condensed", "Barlow", ui-sans-serif, system-ui, sans-serif;
+
+  --color-road: #f3f4f5;
+  --color-ink: #1b1f24;
+  --color-muted: #5d6570;
+  --color-line: #e1e4e8;
+  --color-signal: #f5c400;
+  --color-signal-soft: #fff5c7;
+  --color-danger: #b42318;
+  --color-caution: #b54708;
+}
+
+@layer base {
+  body {
+    @apply bg-road text-ink antialiased;
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

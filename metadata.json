@@ -1,0 +1,6 @@
+{
+  "name": "MotoSpec & Aftermarket",
+  "description": "Minimalist motorcycle specifications and model-matched aftermarket parts explorer with live web citations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
