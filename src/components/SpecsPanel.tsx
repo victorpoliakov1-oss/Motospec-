@@ -131,6 +131,13 @@ export const SpecsPanel: React.FC<SpecsPanelProps> = ({ specsData, isLoading, re
         </div>
       </header>
 
+      {specsData.grounded === false && (
+        <p className="rounded-lg border border-caution/40 bg-white p-3 text-sm">
+          <span className="font-semibold">Looked up without web search.</span> Today's free search allowance is used up, so these
+          details come from the AI's own knowledge. Double-check important numbers before relying on them.
+        </p>
+      )}
+
       {/* Overview */}
       {overviewParas.length > 0 && (
         <section>

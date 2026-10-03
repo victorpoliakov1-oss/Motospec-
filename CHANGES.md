@@ -1,5 +1,23 @@
 # MotoSpec – changes
 
+## Free-tier friendly Gemini use
+- Why searches failed: on Google's FREE API tier, Google Search is "Not available" for
+  Gemini 3.x models, so every search with Gemini 3.8 Flash was refused with
+  "You exceeded your current quota". (A Google AI Pro subscription only raises limits
+  inside the AI Studio website, not for apps using an API key.)
+- The search step now uses Gemini 2.5 Flash, which includes Google Search free on the
+  free tier (up to 500 searches/day, shared with 2.5 Flash-Lite). The strict-format step
+  still uses Gemini 3.8 Flash. New file: `server/gemini.ts`.
+- No more wasted requests: a quota error is never retried. That model is skipped until
+  its limit resets (midnight US Pacific for daily limits), so later lookups spend zero
+  requests on it. Only temporary "overloaded" errors get one retry.
+- If today's search allowance is used up, the app still answers from the AI's own
+  knowledge and says so on the page. Those answers are cached for 1 hour only.
+- Clear message when everything is used up; built-in bikes keep working.
+- Change models without code via environment variables (comma-separated):
+  GEMINI_SEARCH_MODELS (search step) and GEMINI_MODELS (strict-format step).
+  E.g. after enabling billing: GEMINI_SEARCH_MODELS=gemini-3.8-flash,gemini-2.5-flash
+
 ## 30 Sep 2026 – online lookup and store links
 
 ### Online lookup (bikes not in the built-in list)

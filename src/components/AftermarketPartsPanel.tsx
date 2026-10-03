@@ -110,6 +110,10 @@ export const AftermarketPartsPanel: React.FC<AftermarketPartsPanelProps> = ({
         you buy.
       </p>
 
+      {partsData?.grounded === false && !isLoading && (
+        <p className="mt-2 text-sm text-caution">Suggested without web search today, so check each part on the store page.</p>
+      )}
+
       {revzilla && (
         <div className="mt-3 rounded-lg bg-white p-3 text-sm ring-1 ring-line">
           <a

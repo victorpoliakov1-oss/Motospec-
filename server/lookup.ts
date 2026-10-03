@@ -49,7 +49,10 @@ export function friendlyError(err: unknown, what: string): LookupError {
     return new LookupError('The Gemini API key is missing or invalid. Add GEMINI_API_KEY in Settings → Secrets.', 500);
   }
   if (/429|RESOURCE_EXHAUSTED|quota|rate limit/i.test(msg)) {
-    return new LookupError(`The AI service's usage limit was reached while looking up ${what}. Wait a minute and try again.`, 429);
+    return new LookupError(
+      `Today's free Gemini allowance is used up, so ${what} can't be looked up right now. It resets at midnight US Pacific time. The built-in bikes still work.`,
+      429
+    );
   }
   if (/abort|timed? ?out|deadline/i.test(msg)) {
     return new LookupError(`Looking up ${what} took too long. Try again.`, 504);
@@ -253,6 +256,8 @@ One product per entry. "searchQuery" is 3-6 words: brand + product line only, no
 
 export interface SpecsResult extends NormalizedSpecs {
   sources: Source[];
+  /** true when the answer came from a Google Search step, false when from the AI's own knowledge */
+  grounded: boolean;
 }
 
 function notFoundError(query: string, suggestion?: string): LookupError {
@@ -277,7 +282,7 @@ export async function lookupSpecs(query: string, generate: GenerateFn, log: (msg
     sources = result.sources;
     const normalized = normalizeSpecs(extractJson(result.text), query);
     if (isNotFound(normalized)) throw notFoundError(query, normalized.suggestion);
-    if (normalized && specsAreUsable(normalized)) return { ...normalized, sources };
+    if (normalized && specsAreUsable(normalized)) return { ...normalized, sources, grounded: true };
     log(`Specs answer for "${query}" was incomplete, running repair pass. Start of answer: ${result.text.slice(0, 300)}`);
   } catch (err) {
     if (err instanceof LookupError) throw err;
@@ -291,7 +296,8 @@ export async function lookupSpecs(query: string, generate: GenerateFn, log: (msg
     const result = await generate(specsRepairPrompt(query, research), { search: false, jsonSchema: SPECS_SCHEMA });
     const normalized = normalizeSpecs(extractJson(result.text), query);
     if (isNotFound(normalized)) throw notFoundError(query, normalized.suggestion);
-    if (normalized && specsAreUsable(normalized)) return { ...normalized, sources };
+    // Grounded only if the search step actually returned research we built on
+    if (normalized && specsAreUsable(normalized)) return { ...normalized, sources, grounded: !firstError && !!research };
     log(`Repair pass for "${query}" was still too thin: ${result.text.slice(0, 300)}`);
   } catch (err) {
     if (err instanceof LookupError) throw err;
@@ -309,6 +315,7 @@ export interface PartsResult {
   partQuery: string;
   parts: NormalizedPart[];
   sources: Source[];
+  grounded: boolean;
 }
 
 export async function lookupParts(
@@ -331,7 +338,7 @@ export async function lookupParts(
     const json = extractJson(result.text) as any;
     best = normalizeParts(json);
     if (typeof json?.motorcycleModel === 'string' && json.motorcycleModel.trim()) motorcycleModel = json.motorcycleModel.trim();
-    if (best.length >= enough) return { motorcycleModel, partQuery, parts: best, sources };
+    if (best.length >= enough) return { motorcycleModel, partQuery, parts: best, sources, grounded: true };
     log(`Parts answer for "${model}" had ${best.length} usable parts, running repair pass.`);
   } catch (err) {
     firstError = err;
@@ -352,5 +359,5 @@ export async function lookupParts(
   if (best.length === 0 && !partQuery) {
     throw new LookupError(`Couldn't find aftermarket parts for "${model}" right now. Try again, or search for a specific part.`, 404);
   }
-  return { motorcycleModel, partQuery, parts: best, sources };
+  return { motorcycleModel, partQuery, parts: best, sources, grounded: !firstError && !!research };
 }

@@ -35,6 +35,8 @@ export interface MotorcycleSpecs {
   sources?: { title: string; uri: string; type?: string }[];
   /** RevZilla bike page suggested by the online lookup (checked by the server before use) */
   revzillaPartsUrl?: string;
+  /** false when web search wasn't available and the answer came from the AI's own knowledge */
+  grounded?: boolean;
 }
 
 /** RevZilla's own page and number for the rider's bike */
@@ -64,4 +66,5 @@ export interface AftermarketPartsResponse {
   partQuery?: string;
   parts: AftermarketPart[];
   sources?: { title: string; uri: string }[];
+  grounded?: boolean;
 }
